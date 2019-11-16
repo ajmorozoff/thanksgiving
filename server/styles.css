@@ -3,3 +3,11 @@
     flex-direction: row;
     justify-content: space-around;
 }
+
+.dish-item {
+    background-color: #FFFFFF;
+}
+
+.selected {
+    background-color: rgb(235, 135, 135);
+}

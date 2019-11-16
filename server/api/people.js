@@ -14,6 +14,9 @@ router.get("/", async(req, res, next) => {
                 where: {
                     isAttending: (typeof attending != 'undefined' ? attending : [true, false]),
                 },
+                order: [
+                    ['createdAt', 'DESC']
+                ],
                 include: [Dish]
             });
         }
@@ -22,6 +25,9 @@ router.get("/", async(req, res, next) => {
                 where: {
                     isAttending: (typeof attending != 'undefined' ? attending : [true, false]),
                 },
+                order: [
+                    ['createdAt', 'DESC']
+                ]
             });
         }
         if (data) {
