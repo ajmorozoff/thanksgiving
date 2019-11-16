@@ -12,7 +12,7 @@ You need to define 2 models: Person and Dish.
 
 A person has name and an attending status.
 
-A dish has name and description.
+A dish has name and description. 
 
 A person may be responsible for a dish.
 

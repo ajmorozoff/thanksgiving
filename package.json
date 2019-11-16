@@ -1,7 +1,7 @@
 {
   "name": "tgives",
   "version": "1.0.0",
-  "description": "",
+  "description": "## Setup",
   "main": "seed.js",
   "scripts": {
     "start": "node server/index.js",
@@ -19,5 +19,14 @@
   "devDependencies": {
     "nodemon": "^1.19.4",
     "supertest": "^4.0.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ajmorozoff/thanksgiving.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/ajmorozoff/thanksgiving/issues"
+  },
+  "homepage": "https://github.com/ajmorozoff/thanksgiving#readme"
 }
