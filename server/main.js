@@ -34,23 +34,22 @@ class App extends Component {
         this.setState({ people, dishes });
     }
 
-    updateSelectedDish = (dish) => {
+    selectDish = (dish) => {
         if (this.state.selectedDish === dish) {
-            this.state.selectedDish = '';
+            this.setState({selectedDish: ''})
         }
         else {
             this.setState({selectedDish: dish})
         }
     }
 
-    updateSelectedPerson = (person) => {
+    selectPerson = (person) => {
         if (this.state.selectedPerson === person) {
-            this.state.selectedPerson = '';
+            this.setState({selectedPerson: ''})
         }
         else {
             this.setState({selectedPerson: person})
         }
-        
     }
 
     updateAttendance = async(person) => {
@@ -61,6 +60,10 @@ class App extends Component {
     updateOwner = async(dish, person) => {
         const resp = await axios.put(`/api/dishes/${dish.id}`, {...dish, personId: person.id});
         this.fetchData();
+        this.setState({
+            selectedDish: '',
+            selectedPerson: '',
+        })
     }
 
     deletePerson = async(id) => {
@@ -85,14 +88,54 @@ class App extends Component {
     }
 
     render() {
-        const {dishes, people} = this.state;
+        const {dishes, people, selectedDish, selectedPerson} = this.state;
         if (dishes.length || people.length) {
-            return (
-                <div id="app" className="app-container">
-                    <DishList dishes={dishes} addNewDish={this.addNewDish} deleteDish={this.deleteDish} />
-                    <PersonList people={people} addNewPerson={this.addNewPerson} deletePerson={this.deletePerson} updateAttendance={this.updateAttendance} />
-                </div>
-            )
+            if (selectedDish && selectedPerson) {
+                return (
+                    <div id="app">
+                        <div>
+                            <h2>Assign {selectedPerson.name} to bring {selectedDish.name}</h2>
+                            <button onClick={() => this.updateOwner(selectedDish, selectedPerson)}>Assign Dish</button>
+                        </div>
+                        <div className="app-container">
+                            <DishList
+                                dishes={dishes}
+                                addNewDish={this.addNewDish}
+                                deleteDish={this.deleteDish}
+                                select={this.selectDish}
+                                currentSelected={this.state.selectedDish} />
+                            <PersonList
+                                people={people}
+                                addNewPerson={this.addNewPerson}
+                                deletePerson={this.deletePerson}
+                                updateAttendance={this.updateAttendance}
+                                select={this.selectPerson}
+                                currentSelected={this.state.selectedPerson} />
+                        </div>
+                    </div>
+                )
+            }
+            else {
+                return (
+                    <div id="app" className="app-container">
+                        <div className="app-container">
+                            <DishList
+                                dishes={dishes}
+                                addNewDish={this.addNewDish}
+                                deleteDish={this.deleteDish}
+                                select={this.selectDish}
+                                currentSelected={this.state.selectedDish} />
+                            <PersonList
+                                people={people}
+                                addNewPerson={this.addNewPerson}
+                                deletePerson={this.deletePerson}
+                                updateAttendance={this.updateAttendance}
+                                select={this.selectPerson}
+                                currentSelected={this.state.selectedPerson} />
+                        </div>
+                    </div>
+                )
+            }
         }
         else {
             return <div id="app" >Loading...</div>
@@ -118,17 +161,17 @@ class DishList extends Component {
     }
 
     render() {
-        const { dishes, addNewDish, deleteDish } = this.props;
+        const { dishes, deleteDish, currentSelected } = this.props;
         const { newName, newDesc } = this.state;
         return (
             <div id="dish-list" className="list-container">
-                <h1>Dishes for the Party</h1>
+                <h1>Dishes to bring</h1>
                 <input name="dish-name" value={newName} onChange={(ev) => this.setState({newName: ev.target.value})} /><br />
                 <input name="dish-desc" className="large-input" value={newDesc} onChange={(ev) => this.setState({newDesc: ev.target.value})} /><br />
                 <button onClick={() => this.handleClick()} disabled={newName ? '' : 'disabled'}>Add</button>
                 <ul>
                 {
-                    dishes.map(dish => <DishItem key={dish.id} dish={dish} deleteDish={deleteDish} />)
+                    dishes.map(dish => <DishItem key={dish.id} dish={dish} deleteDish={deleteDish} select={this.props.select} selected={dish.id === currentSelected.id} />)
                 }
                 </ul>
             </div>
@@ -140,12 +183,12 @@ class DishItem extends Component {
     constructor(props) {
         super();
         this.state = {
-            selected: false,
+            selected: props.selected,
         }
     }
-    toggleSelection = (ev) => {
-        ev.preventDefault();
+    toggleSelection = (ev, dish) => {
         this.setState({selected: !this.state.selected})
+        this.props.select(dish);
     }
 
     submitDelete = (ev, dish) => {
@@ -156,7 +199,7 @@ class DishItem extends Component {
     render() {
         const { dish, deleteDish } = this.props;
         return (
-            <div className={this.state.selected ? "dish-item selected" : "dish-item"} onClick={(ev) => this.toggleSelection(ev)}>
+            <div className={this.state.selected ? "dish-item selected" : "dish-item"} onClick={(ev) => this.toggleSelection(ev, dish)}>
                 <h2>{dish.name}</h2>
                 <p>{dish.description}</p>
                 <p>Owned by {dish.personId ? dish.person.name : 'nobody'}</p>
@@ -183,15 +226,15 @@ class PersonList extends Component {
 
     render() {
         const { newName } = this.state;
-        const { people, deletePerson, updateAttendance} = this.props;
+        const { people, deletePerson, updateAttendance, currentSelected} = this.props;
         return (
             <div id="person-list" className="list-container">
-                <h1>Party Invite List</h1>
+                <h1>Invite List</h1>
                 <input name="add-invitee" value={newName} onChange={(ev) => this.setState({newName: ev.target.value})} />
                 <button onClick={() => this.handleClick()} disabled={newName ? '' : 'disabled'}>Add</button>
                 <ul>
                 {
-                    people.map(person => <PersonItem key={person.id} person={person} deletePerson={deletePerson} updateAttendance={updateAttendance} />)
+                    people.map(person => <PersonItem key={person.id} person={person} deletePerson={deletePerson} updateAttendance={updateAttendance} select={this.props.select} selected={person.id === currentSelected.id} />)
                 }
                 </ul>
             </div>
@@ -199,16 +242,35 @@ class PersonList extends Component {
     }
 }
 
-const PersonItem = (props) => {
-    const { person, deletePerson, updateAttendance } = props;
-    return (
-        <div className="person-item">
-            <h2>{person.name}</h2>
-            <p>Attending: {person.isAttending ? 'yes' : 'no'}</p>
-            <button onClick={() => deletePerson(person.id)}>Remove from list</button>
-            <button onClick={() => updateAttendance(person)}>Toggle Attendance</button>
-        </div>
-    )
+class PersonItem extends Component {
+    constructor(props) {
+        super();
+        this.state = {
+            selected: props.selected,
+        }
+    }
+
+    toggleSelection = (ev, person) => {
+        this.setState({selected: !this.state.selected})
+        this.props.select(person);
+    }
+
+    submitDelete = (ev, person) => {
+        ev.stopPropagation();
+        this.props.deletePerson(person.id);
+    }
+
+    render() {
+        const { person, deletePerson, updateAttendance } = this.props;
+        return (
+            <div className={this.state.selected ? "person-item selected" : "person-item"} onClick={(ev) => this.toggleSelection(ev, person)}>
+                <h2>{person.name}</h2>
+                <p>Attending: {person.isAttending ? 'yes' : 'no'}</p>
+                <button onClick={(ev) => this.submitDelete(ev, person)}>Remove from list</button>
+                <button onClick={() => updateAttendance(person)}>Toggle Attendance</button>
+            </div>
+        )
+    }
 }
 
 ReactDOM.render(<App />, root);

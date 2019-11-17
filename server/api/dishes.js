@@ -6,7 +6,11 @@ const { Dish, Person } = require("../../db");
 
 router.get("/", async (req, res, next) => {
     try {
-        const dishes = await Dish.findAll();
+        const dishes = await Dish.findAll({
+            order: [
+                ['createdAt', 'DESC']
+            ],
+        });
         if (dishes) {
             res.status(200).send(dishes);
         }
